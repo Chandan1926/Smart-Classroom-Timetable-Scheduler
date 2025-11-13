@@ -114,9 +114,6 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Timetable Management</CardTitle>
-                    <CardDescription>
-                      Generate and manage optimized timetables for your institution
-                    </CardDescription>
                   </div>
                   <Button onClick={() => setShowForm(true)} className="gap-2">
                     <Plus className="h-4 w-4" />
@@ -133,7 +130,7 @@ const Dashboard = () => {
                   Previous Timetables
                 </CardTitle>
                 <CardDescription>
-                  View and manage your generated timetables
+                  View and manage timetables
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -147,9 +144,6 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Generate New Timetable</CardTitle>
-                  <CardDescription>
-                    Fill in the parameters to create an optimized schedule
-                  </CardDescription>
                 </div>
                 <Button variant="outline" onClick={() => setShowForm(false)}>
                   Cancel
