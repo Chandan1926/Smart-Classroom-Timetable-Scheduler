@@ -130,10 +130,6 @@ const TimetableList = ({ userId }: TimetableListProps) => {
                   {timetable.timetable_configs?.num_classrooms} classrooms • 
                   {timetable.timetable_configs?.max_classes_per_day} classes/day
                 </p>
-                <p className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-accent" />
-                  Optimization Score: {timetable.optimization_score}%
-                </p>
                 <p className="text-xs">
                   Created: {new Date(timetable.created_at).toLocaleDateString()}
                 </p>
