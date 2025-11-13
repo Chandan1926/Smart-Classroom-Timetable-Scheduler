@@ -121,7 +121,6 @@ const Auth = () => {
                     <Input
                       id="signin-email"
                       type="email"
-                      placeholder="you@institution.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required

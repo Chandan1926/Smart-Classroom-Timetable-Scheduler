@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Eye, Download, Award } from "lucide-react";
+import { Calendar, Eye, Download, Award, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import TimetableViewer from "./TimetableViewer";
 
@@ -55,6 +55,23 @@ const TimetableList = ({ userId }: TimetableListProps) => {
     link.download = `timetable_${timetable.id}.json`;
     link.click();
     toast.success("Timetable downloaded");
+  };
+
+  const deleteTimetable = async (timetableId: string) => {
+    try {
+      const { error } = await supabase
+        .from("generated_timetables")
+        .delete()
+        .eq("id", timetableId);
+
+      if (error) throw error;
+
+      toast.success("Timetable deleted");
+      fetchTimetables();
+    } catch (error: any) {
+      console.error("Error deleting timetable:", error);
+      toast.error("Failed to delete timetable");
+    }
   };
 
   if (loading) {
@@ -138,6 +155,13 @@ const TimetableList = ({ userId }: TimetableListProps) => {
                 onClick={() => downloadTimetable(timetable)}
               >
                 <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => deleteTimetable(timetable.id)}
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
