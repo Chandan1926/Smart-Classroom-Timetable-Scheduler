@@ -21,6 +21,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
+      {/* Header */}
       <header className="bg-card border-b border-border shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -46,6 +47,7 @@ const Dashboard = () => {
         </div>
       </header>
 
+      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {!showForm ? (
           <div className="space-y-6">
