@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Plus, LogOut, History } from "lucide-react";
@@ -10,72 +9,15 @@ import TimetableList from "@/components/TimetableList";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // Simulating a user since we removed Supabase Auth
+  const user = { id: "test-user-id", email: "demo@example.com" };
+  const profile = { full_name: "Demo User", institution_name: "Azure School" };
   const [showForm, setShowForm] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-      fetchProfile(session.user.id);
-    };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error: any) {
-      console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast.success("Signed out successfully");
-      navigate("/");
-    } catch (error: any) {
-      toast.error("Failed to sign out");
-    }
+    toast.success("Signed out successfully");
+    navigate("/");
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -130,11 +72,11 @@ const Dashboard = () => {
                   Previous Timetables
                 </CardTitle>
                 <CardDescription>
-                  View and manage timetables
+                  View and manage timetables stored in Azure Database
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TimetableList userId={user?.id} />
+                <TimetableList userId={user.id} />
               </CardContent>
             </Card>
           </div>
@@ -152,8 +94,8 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <TimetableForm 
-                userId={user?.id} 
-                institutionName={profile?.institution_name}
+                userId={user.id} 
+                institutionName={profile.institution_name}
                 onSuccess={() => setShowForm(false)}
               />
             </CardContent>
