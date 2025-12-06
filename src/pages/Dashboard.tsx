@@ -10,3 +10,5 @@ useEffect(() => {
     setUser({ id: parsed.id });
   }
 }, []);
+
+export default Dashboard;
