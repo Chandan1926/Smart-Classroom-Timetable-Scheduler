@@ -1,69 +1,43 @@
 const { Client } = require('pg');
 
 module.exports = async function (context, req) {
-    // 1. Connect to the Database
-    // Azure provides this connection string via "Environment Variables" setting
     const client = new Client({
         connectionString: process.env.POSTGRES_CONNECTION_STRING,
         ssl: { rejectUnauthorized: false }
     });
 
+    await client.connect();
+
     try {
-        await client.connect();
-
-        // 2. Handle GET Requests (Fetch user's timetables)
+        // GET
         if (req.method === "GET") {
-            // Get the User ID from the header (sent by your Frontend)
-            const userId = req.headers['x-user-id']; 
-
-            if (!userId) {
-                context.res = { status: 400, body: "Missing User ID" };
-                return;
-            }
-
-            // Run SQL Query
+            const userId = req.headers['x-user-id'];
             const query = 'SELECT * FROM generated_timetables WHERE user_id = $1 ORDER BY created_at DESC';
             const res = await client.query(query, [userId]);
-
-            // Return Data
-            context.res = {
-                status: 200,
-                body: res.rows
-            };
+            context.res = { status: 200, body: res.rows };
         } 
-
-        // 3. Handle POST Requests (Save a new timetable)
+        // POST
         else if (req.method === "POST") {
             const { user_id, timetable_data, optimization_score } = req.body;
-
-            if (!user_id || !timetable_data) {
-                context.res = { status: 400, body: "Missing required fields" };
-                return;
-            }
-
-            // Run SQL Insert
+            // Note: We removed config_id dependency for simplicity
             const query = `
                 INSERT INTO generated_timetables (user_id, timetable_data, optimization_score)
                 VALUES ($1, $2, $3)
                 RETURNING *;
             `;
-            const values = [user_id, JSON.stringify(timetable_data), optimization_score];
-            const res = await client.query(query, values);
-
-            // Return Success
-            context.res = {
-                status: 201,
-                body: res.rows[0]
-            };
+            const res = await client.query(query, [user_id, JSON.stringify(timetable_data), optimization_score]);
+            context.res = { status: 201, body: res.rows[0] };
+        }
+        // DELETE
+        else if (req.method === "DELETE") {
+            const id = req.query.id;
+            const query = 'DELETE FROM generated_timetables WHERE id = $1 RETURNING *';
+            const res = await client.query(query, [id]);
+            context.res = { status: 200, body: { message: "Deleted" } };
         }
     } catch (err) {
-        context.log.error("Database Error:", err);
-        context.res = {
-            status: 500,
-            body: "Database error: " + err.message
-        };
+        context.res = { status: 500, body: "Error: " + err.message };
     } finally {
-        // 4. Always close the connection
         await client.end();
     }
 };
