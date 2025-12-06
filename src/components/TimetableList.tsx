@@ -21,23 +21,39 @@ const TimetableList = ({ userId }: TimetableListProps) => {
 
   const fetchTimetables = async () => {
     try {
-      // Call your new Azure Function
       const response = await fetch('/api/timetables', {
-        method: 'GET',
+        headers: { 'x-user-id': userId }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      setTimetables(data || []);
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteTimetable = async (timetableId: string) => {
+    try {
+      // THIS IS THE NEW CODE TO ENABLE DELETING
+      const response = await fetch(`/api/timetables?id=${timetableId}`, {
+        method: 'DELETE',
         headers: {
-          'x-user-id': userId // Pass the user ID for filtering
+          'x-user-id': userId
         }
       });
 
-      if (!response.ok) throw new Error('Failed to fetch data');
+      if (!response.ok) {
+        throw new Error("Failed to delete");
+      }
 
-      const data = await response.json();
-      setTimetables(data || []);
-    } catch (error: any) {
-      console.error("Error fetching timetables:", error);
-      toast.error("Failed to load timetables");
-    } finally {
-      setLoading(false);
+      toast.success("Timetable deleted successfully");
+      // Remove the item from the screen immediately
+      setTimetables((prev) => prev.filter((t) => t.id !== timetableId));
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete timetable");
     }
   };
 
@@ -52,30 +68,12 @@ const TimetableList = ({ userId }: TimetableListProps) => {
     toast.success("Timetable downloaded");
   };
 
-  // Note: Delete functionality requires adding a DELETE handler to your Azure Function.
-  // For now, this is a placeholder.
-  const deleteTimetable = async (timetableId: string) => {
-    toast.error("Delete functionality not yet implemented in API");
-  };
-
-  if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-2 text-muted-foreground">Loading timetables...</p>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-center py-8">Loading...</div>;
 
   if (selectedTimetable) {
     return (
       <div className="space-y-4">
-        <Button 
-          variant="outline" 
-          onClick={() => setSelectedTimetable(null)}
-        >
-          Back to List
-        </Button>
+        <Button variant="outline" onClick={() => setSelectedTimetable(null)}>Back</Button>
         <TimetableViewer timetable={selectedTimetable} />
       </div>
     );
@@ -83,12 +81,8 @@ const TimetableList = ({ userId }: TimetableListProps) => {
 
   if (timetables.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No timetables yet</h3>
-        <p className="text-muted-foreground">
-          Generate your first optimized timetable to get started
-        </p>
+      <div className="text-center py-12 text-muted-foreground">
+        No timetables yet. Generate one to get started.
       </div>
     );
   }
@@ -100,46 +94,24 @@ const TimetableList = ({ userId }: TimetableListProps) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                {/* Note: We handle missing config data gracefully with ? checks */}
                 <h4 className="font-semibold">
                   {timetable.timetable_configs?.institution_name || "Timetable"}
                 </h4>
-                <Badge variant={timetable.status === "approved" ? "default" : "secondary"}>
-                  {timetable.status || "Generated"}
-                </Badge>
+                <Badge variant="secondary">{timetable.status || "Generated"}</Badge>
               </div>
-              
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>
-                   Score: {timetable.optimization_score}%
-                </p>
-                <p className="text-xs">
-                  Created: {new Date(timetable.created_at).toLocaleDateString()}
-                </p>
+              <div className="text-sm text-muted-foreground">
+                Score: {timetable.optimization_score}% • Created: {new Date(timetable.created_at).toLocaleDateString()}
               </div>
             </div>
-
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedTimetable(timetable)}
-              >
-                <Eye className="h-4 w-4 mr-1" />
-                View
+              <Button variant="outline" size="sm" onClick={() => setSelectedTimetable(timetable)}>
+                <Eye className="h-4 w-4" />
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => downloadTimetable(timetable)}
-              >
+              <Button variant="outline" size="sm" onClick={() => downloadTimetable(timetable)}>
                 <Download className="h-4 w-4" />
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => deleteTimetable(timetable.id)}
-              >
+              {/* DELETE BUTTON */}
+              <Button variant="destructive" size="sm" onClick={() => deleteTimetable(timetable.id)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
